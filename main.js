@@ -3996,3 +3996,4 @@ function renderFinanceChart(chartData) {
         }
     });
 }
+
