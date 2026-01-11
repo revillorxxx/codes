@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Premierlux | Intelligent Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Cinzel:wght@600;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+
+    :root {
+      --brand-wine: #5E4074;
+      --brand-wine-light: #7a5c91;
+      --brand-linen: #F5F0F9;
+      --brand-cloud: #FFFFFF;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #f59e0b;
+    }
+
+    body {
+      font-family: 'Manrope', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+      background-color: #F5F0F9;
+      background-image:
+        radial-gradient(at 0% 0%, hsla(275, 34%, 35%, 0.2) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, hsla(275, 34%, 95%, 1) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, hsla(275, 34%, 35%, 0.2) 0px, transparent 50%),
+        radial-gradient(at 0% 100%, hsla(275, 34%, 95%, 1) 0px, transparent 50%);
+      background-size: 180% 180%;
+      animation: meshMove 15s ease infinite alternate;
+    }
+
+    @keyframes meshMove {
+      0% {
+        background-position: 0% 0%;
+      }
+
+      100% {
+        background-position: 100% 100%;
+      }
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 950px;
+      min-height: 600px;
+      background: var(--brand-cloud);
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(94, 64, 116, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.6);
+      display: flex;
+      overflow: hidden;
+      position: relative;
+      z-index: 10;
+      backdrop-filter: blur(10px);
+    }
+
+    .art-panel {
+      flex: 1;
+      background: linear-gradient(135deg, #251730 0%, var(--brand-wine) 100%);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      text-align: center;
+      overflow: hidden;
+      min-width: 40%;
+    }
+
+    .art-content {
+      position: relative;
+      z-index: 10;
+      padding: 2rem;
+    }
+
+    .art-content h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.5;
+      animation: float 10s infinite ease-in-out;
+    }
+
+    .orb-1 {
+      width: 150px;
+      height: 150px;
+      background: #9d7dba;
+      top: -30px;
+      left: -30px;
+    }
+
+    .orb-2 {
+      width: 250px;
+      height: 250px;
+      background: #452b5a;
+      bottom: -50px;
+      right: -50px;
+      animation-delay: 2s;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-15px);
+      }
+    }
+
+    .form-panel {
+      flex: 1.3;
+      padding: 3rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: var(--brand-cloud);
+      position: relative;
+    }
+
+    .form-view {
+      transition: opacity 0.3s ease;
+      width: 100%;
+    }
+
+    .hidden {
+      display: none;
+      opacity: 0;
+    }
+
+    .visible {
+      display: block;
+      opacity: 1;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .input-group {
+      position: relative;
+      margin-bottom: 1.25rem;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 1rem 1rem 1rem 2.8rem;
+      font-size: 0.95rem;
+      color: var(--brand-wine);
+      background: #F8FAFC;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      outline: none;
+      transition: all 0.2s;
+      font-weight: 600;
+    }
+
+    .input-field:focus {
+      background: #fff;
+      border-color: var(--brand-wine);
+      box-shadow: 0 2px 10px rgba(94, 64, 116, 0.05);
+    }
+
+    .input-field.valid {
+      border-color: var(--success);
+    }
+
+    .input-field.valid~.input-icon {
+      color: var(--success);
+    }
+
+    .floating-label {
+      position: absolute;
+      left: 2.8rem;
+      top: 1rem;
+      color: #94a3b8;
+      font-size: 0.9rem;
+      pointer-events: none;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .input-field:focus~.floating-label,
+    .input-field:not(:placeholder-shown)~.floating-label {
+      top: -0.6rem;
+      left: 0.8rem;
+      font-size: 0.75rem;
+      color: var(--brand-wine);
+      background: white;
+      padding: 0 6px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 1.1rem;
+      color: #cbd5e1;
+      font-size: 1.1rem;
+      transition: color 0.3s;
+    }
+
+    .input-field:focus~.input-icon {
+      color: var(--brand-wine);
+    }
+
+    #securityAnalysis {
+      height: 0;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      opacity: 0;
+      margin-top: -5px;
+      margin-bottom: 5px;
+    }
+
+    #securityAnalysis.active {
+      height: auto;
+      opacity: 1;
+      margin-bottom: 15px;
+    }
+
+    .ai-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .ai-badge.weak {
+      background: #fee2e2;
+      color: #ef4444;
+    }
+
+    .ai-badge.medium {
+      background: #fef3c7;
+      color: #d97706;
+    }
+
+    .ai-badge.strong {
+      background: #d1fae5;
+      color: #10b981;
+    }
+
+    .ai-text {
+      font-size: 0.7rem;
+      color: #94a3b8;
+      font-weight: 500;
+      margin-top: 4px;
+      display: block;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      cursor: pointer;
+    }
+
+    .custom-checkbox {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #cbd5e1;
+      border-radius: 4px;
+      margin-right: 8px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .custom-checkbox:checked {
+      background-color: var(--brand-wine);
+      border-color: var(--brand-wine);
+    }
+
+    .custom-checkbox:checked::after {
+      content: '✔';
+      font-size: 9px;
+      color: white;
+      position: absolute;
+      top: -1px;
+      left: 2px;
+    }
+
+    .checkbox-label {
+      font-size: 0.8rem;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .btn-brand {
+      width: 100%;
+      padding: 1rem;
+      background: var(--brand-wine);
+      color: white;
+      font-weight: 700;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background-color 0.2s;
+      font-size: 0.95rem;
+    }
+
+    .btn-brand:hover {
+      background: var(--brand-wine-light);
+    }
+
+    .demo-box {
+      margin-top: 1.5rem;
+      background: #F8FAFC;
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .demo-title {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--brand-wine);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .demo-pill {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .demo-pill:hover {
+      border-color: var(--brand-wine);
+      color: var(--brand-wine);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .project-note {
+      font-size: 0.65rem;
+      color: #94a3b8;
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+      .login-card {
+        flex-direction: column;
+        height: auto;
+      }
+
+      .art-panel {
+        min-height: 150px;
+        flex: none;
+      }
+
+      .form-panel {
+        padding: 2rem;
+        flex: none;
+      }
+
+      .demo-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-card">
+
+    <div class="art-panel">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="art-content">
+        <h1>PREMIERLUX</h1>
+        <p class="text-xs tracking-[0.3em] opacity-80 uppercase">Inventory Management</p>
+      </div>
+    </div>
+
+    <div class="form-panel">
+
+      <div id="login-view" class="form-view visible">
+        <div class="mb-6">
+          <h2 class="text-2xl font-extrabold text-[#5E4074]" id="welcomeText">Welcome Back</h2>
+          <p class="text-sm text-slate-400 font-medium mt-1">Authenticate to access your dashboard.</p>
+        </div>
+
+        <div class="input-group">
+          <input type="email" id="loginEmail" class="input-field" placeholder=" " autocomplete="off"
+            oninput="validateEmail(this)">
+          <label class="floating-label">Email Address</label>
+          <i class="fas fa-envelope input-icon"></i>
+        </div>
+
+        <div class="input-group">
+          <input type="password" id="loginPassword" class="input-field" placeholder=" " autocomplete="off">
+          <label class="floating-label">Password</label>
+          <i class="fas fa-lock input-icon"></i>
+          <i class="fas fa-eye absolute right-4 top-4 text-slate-300 cursor-pointer hover:text-[#5E4074] transition"
+            id="togglePass"></i>
+        </div>
+
+        <div id="securityAnalysis">
+          <div id="aiBadge" class="ai-badge weak">
+            <i class="fas fa-shield-alt"></i> <span id="aiScore">ANALYZING...</span>
+          </div>
+          <span id="aiMessage" class="ai-text">Calculating entropy...</span>
+        </div>
+
+        <label class="checkbox-group">
+          <input type="checkbox" id="rememberMe" class="custom-checkbox">
+          <span class="checkbox-label">Remember me for 30 days</span>
+        </label>
+
+        <button id="loginBtn" class="btn-brand">
+          <span>Sign In</span>
+          <i class="fas fa-arrow-right text-sm"></i>
+        </button>
+
+        <p id="errorMsg" class="text-center text-rose-500 text-xs font-bold mt-3 h-4"></p>
+
+        <div class="text-center mt-2">
+          <button onclick="switchView('recover')"
+            class="text-xs text-slate-400 hover:text-[#5E4074] font-bold transition">Forgot Password?</button>
+        </div>
+
+        <div class="demo-box">
+          <div class="demo-title"><i class="fas fa-user-tag"></i> Project Demo Accounts</div>
+          <div class="demo-grid">
+            <div class="demo-pill" onclick="fillDemo('owner')">Owner</div>
+            <div class="demo-pill" onclick="fillDemo('admin')">Admin</div>
+            <div class="demo-pill" onclick="fillDemo('staff')">Staff</div>
+          </div>
+          <p class="project-note">System developed for educational project purposes only.</p>
+        </div>
+
+      </div>
+
+      <div id="recover-view" class="form-view hidden">
+        <div class="mb-8">
+          <div class="h-10 w-10 bg-[#F5F0F9] rounded-full flex items-center justify-center text-lg text-[#5E4074] mb-3">
+            🔐</div>
+          <h2 class="text-2xl font-extrabold text-[#5E4074]">Recovery</h2>
+          <p class="text-sm text-slate-400 font-medium mt-1">Enter your email to reset your password.</p>
+        </div>
+
+        <div class="input-group">
+          <input type="email" id="recoverEmail" class="input-field" placeholder=" " autocomplete="off">
+          <label class="floating-label">Email Address</label>
+          <i class="fas fa-envelope input-icon"></i>
+        </div>
+
+        <button id="recoverBtn" class="btn-brand" onclick="sendRecovery(event)">
+          <span>Send Reset Link</span>
+          <i class="fas fa-paper-plane text-sm"></i>
+        </button>
+
+        <p id="recoverMsg" class="text-center text-emerald-500 text-xs font-bold mt-4 h-5"></p>
+
+        <div class="mt-4 text-center">
+          <button onclick="switchView('login')"
+            class="text-xs text-slate-400 hover:text-[#5E4074] font-bold transition flex items-center justify-center gap-2 mx-auto">
+            <i class="fas fa-arrow-left"></i> Back to Login
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+      ? "" : "https://premierluxinventory.onrender.com";
+
+    function fillDemo(role) {
+      const emailIn = document.getElementById('loginEmail');
+      const passIn = document.getElementById('loginPassword');
+
+      if (role === 'owner') {
+        emailIn.value = 'owner@premierlux.com';
+        passIn.value = 'owner123';
+      }
+      else if (role === 'admin') {
+        emailIn.value = 'admin@premierlux.com';
+        passIn.value = 'AdminPass123!';
+      }
+      else {
+        emailIn.value = 'staff@premierlux.com';
+        passIn.value = 'StaffPass123!';
+      }
+
+      if (typeof validateEmail === 'function') validateEmail(emailIn);
+
+      const analysisBox = document.getElementById('securityAnalysis');
+      analysisBox.classList.add('active');
+      analyzeEntropy(passIn.value);
+    }
+    const hour = new Date().getHours();
+    const welcomeText = document.getElementById('welcomeText');
+    if (hour < 12) welcomeText.textContent = "Good Morning";
+    else if (hour < 18) welcomeText.textContent = "Good Afternoon";
+    else welcomeText.textContent = "Good Evening";
+
+    window.addEventListener('load', () => {
+      const savedEmail = localStorage.getItem('premierlux_email');
+      if (savedEmail) {
+        document.getElementById('loginEmail').value = savedEmail;
+        document.getElementById('rememberMe').checked = true;
+        validateEmail(document.getElementById('loginEmail'));
+      }
+    });
+
+    function validateEmail(input) {
+      const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value);
+      const icon = input.parentElement.querySelector('.input-icon');
+
+      if (isValid) {
+        input.classList.add('valid');
+        icon.classList.remove('fa-envelope');
+        icon.classList.add('fa-check-circle');
+      } else {
+        input.classList.remove('valid');
+        icon.classList.remove('fa-check-circle');
+        icon.classList.add('fa-envelope');
+      }
+    }
+    const passInput = document.getElementById('loginPassword');
+    const analysisBox = document.getElementById('securityAnalysis');
+    const aiBadge = document.getElementById('aiBadge');
+    const aiScore = document.getElementById('aiScore');
+    const aiMessage = document.getElementById('aiMessage');
+
+    passInput.addEventListener('keyup', function () {
+      const val = passInput.value;
+      if (val.length > 0) {
+        analysisBox.classList.add('active');
+        analyzeEntropy(val);
+      } else {
+        analysisBox.classList.remove('active');
+      }
+    });
+
+    function analyzeEntropy(password) {
+      let score = 0;
+      if (password.length > 7) score++;
+      if (password.match(/[A-Z]/)) score++;
+      if (password.match(/[0-9]/)) score++;
+      if (password.match(/[^a-zA-Z0-9]/)) score++;
+
+      aiBadge.className = 'ai-badge';
+
+      if (score < 2) {
+        aiBadge.classList.add('weak');
+        aiScore.textContent = "WEAK";
+        aiMessage.textContent = "An AI could crack this instantly.";
+      } else if (score < 4) {
+        aiBadge.classList.add('medium');
+        aiScore.textContent = "MODERATE";
+        aiMessage.textContent = "Crack time: 3 days.";
+      } else {
+        aiBadge.classList.add('strong');
+        aiScore.textContent = "SECURE";
+        aiMessage.textContent = "Crack time: 400 centuries.";
+      }
+    }
+
+    function switchView(viewName) {
+      const loginView = document.getElementById('login-view');
+      const recoverView = document.getElementById('recover-view');
+      document.getElementById('errorMsg').textContent = "";
+      document.getElementById('recoverMsg').textContent = "";
+
+      if (viewName === 'recover') {
+        loginView.classList.replace('visible', 'hidden');
+        setTimeout(() => loginView.style.display = 'none', 300);
+        setTimeout(() => {
+          recoverView.style.display = 'block';
+          setTimeout(() => recoverView.classList.replace('hidden', 'visible'), 10);
+        }, 300);
+      } else {
+        recoverView.classList.replace('visible', 'hidden');
+        setTimeout(() => recoverView.style.display = 'none', 300);
+        setTimeout(() => {
+          loginView.style.display = 'block';
+          setTimeout(() => loginView.classList.replace('hidden', 'visible'), 10);
+        }, 300);
+      }
+    }
+
+    function sendRecovery(event) {
+      const email = document.getElementById('recoverEmail').value;
+      const btn = event.currentTarget;
+      const msg = document.getElementById('recoverMsg');
+      const originalText = btn.innerHTML;
+
+      if (!email) {
+        msg.textContent = "Please enter your email.";
+        msg.className = "text-center text-rose-500 text-xs font-bold mt-4 h-5";
+        return;
+      }
+
+      btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Sending...`;
+      btn.disabled = true;
+
+      setTimeout(() => {
+        btn.innerHTML = `<i class="fas fa-check"></i> Sent`;
+        msg.className = "text-center text-emerald-500 text-xs font-bold mt-4 h-5";
+        msg.textContent = "Reset link sent successfully!";
+        setTimeout(() => { btn.disabled = false; btn.innerHTML = originalText; }, 2000);
+      }, 1500);
+    }
+
+    const loginBtn = document.getElementById('loginBtn');
+    document.getElementById('togglePass').addEventListener('click', function () {
+      const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passInput.setAttribute('type', type);
+      this.classList.toggle('fa-eye');
+      this.classList.toggle('fa-eye-slash');
+    });
+
+    loginBtn.addEventListener('click', doLogin);
+    passInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') doLogin(); });
+
+    async function doLogin() {
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = passInput.value.trim();
+      const remember = document.getElementById('rememberMe').checked;
+      const errorMsg = document.getElementById('errorMsg');
+      const originalText = loginBtn.innerHTML;
+
+      if (!email || !password) {
+        errorMsg.textContent = "Please enter both email and password.";
+        return;
+      }
+
+      loginBtn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Authenticating...`;
+      loginBtn.disabled = true;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Login Failed");
+
+        if (remember) {
+          localStorage.setItem('premierlux_email', email);
+        } else {
+          localStorage.removeItem('premierlux_email');
+        }
+
+        loginBtn.innerHTML = `<i class="fas fa-check"></i> Success`;
+        loginBtn.style.background = "#10b981";
+        localStorage.setItem('user_role', data.role);
+        setTimeout(() => { window.location.href = "/"; }, 500);
+
+      } catch (err) {
+        errorMsg.textContent = err.message;
+        loginBtn.innerHTML = originalText;
+        loginBtn.disabled = false;
+        loginBtn.style.background = "";
+      }
+    }
+  </script>
+</body>
+
+</html>
