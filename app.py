@@ -1,7 +1,7 @@
 import eventlet
 eventlet.monkey_patch(all=True)
 
-from flask import Flask, request, jsonify, session, render_template, redirect
+from flask import Flask, request, jsonify, session, render_template, redirect, send_file
 from flask_cors import CORS
 from pymongo import MongoClient
 import os
@@ -58,6 +58,8 @@ users_collection = db["users"]
 audit_collection = db["audit_logs"]
 settings_collection = db["settings"]
 ai_dashboard_collection = db["ai_dashboard"]
+settings_collection = db["system_settings"]
+logs_collection = db["logs"]
 
 
 users_collection.update_one(
@@ -988,13 +990,6 @@ def get_system_settings():
     doc = settings_collection.find_one({"_id": "global_config"}) or {}
     return jsonify({"lockdown": doc.get("lockdown", False)})
 
-@app.route("/api/admin/lockdown", methods=["POST"])
-def toggle_lockdown():
-    if session.get("role") != "owner": return jsonify({"error": "Unauthorized"}), 403
-    new_status = request.json.get("status", False)
-    settings_collection.update_one({"_id": "global_config"}, {"$set": {"lockdown": new_status}}, upsert=True)
-    return jsonify({"message": f"Lockdown {'Enabled' if new_status else 'Disabled'}"})
-
 @app.route("/api/admin/clear-logs", methods=["DELETE"])
 def clear_logs():
     if session.get("role") != "owner": return jsonify({"error": "Unauthorized"}), 403
@@ -1211,6 +1206,103 @@ def start_background_tasks():
     socketio.start_background_task(target=analytics_broadcaster)
 
 start_background_tasks()
+
+
+@app.route('/api/system/status', methods=['GET'])
+def get_system_status():
+
+    settings = settings_collection.find_one({"_id": "global_config"})
+    if not settings:
+        settings = {"_id": "global_config", "lockdown": False, "broadcast_message": ""}
+        settings_collection.insert_one(settings)
+    
+    return jsonify({
+        "lockdown": settings.get("lockdown", False),
+        "broadcast_message": settings.get("broadcast_message", "")
+    })
+
+
+@app.route('/api/admin/lockdown', methods=['POST'])
+def toggle_lockdown():
+    if session.get("role") != "owner": return jsonify({"error": "Unauthorized"}), 403
+    
+    data = request.json
+    new_status = data.get("status", False)
+    
+    settings_collection.update_one(
+        {"_id": "global_config"},
+        {"$set": {"lockdown": new_status}},
+        upsert=True
+    )
+    
+    action = "LOCKED" if new_status else "UNLOCKED"
+    log_behavior("System Lockdown", f"Owner {action} the system", "Admin")
+    
+    return jsonify({"success": True, "lockdown": new_status})
+
+@app.route('/api/admin/broadcast', methods=['POST'])
+def set_broadcast():
+    if session.get("role") != "owner": return jsonify({"error": "Unauthorized"}), 403
+    
+    data = request.json
+    message = data.get("message", "").strip()
+    
+    settings_collection.update_one(
+        {"_id": "global_config"},
+        {"$set": {"broadcast_message": message}},
+        upsert=True
+    )
+    
+    return jsonify({"success": True, "message": message})
+
+
+@app.route('/api/admin/backup', methods=['GET'])
+def download_backup():
+    if session.get("role") != "owner": return jsonify({"error": "Unauthorized"}), 403
+
+    try:
+
+        backup_data = {
+            "inventory": list(inventory_collection.find()),
+            "users": list(users_collection.find()),
+            "logs": list(logs_collection.find()),
+            "consumption": list(consumption_collection.find()),
+            "settings": list(settings_collection.find())
+        }
+        
+
+        json_str = json.dumps(backup_data, default=str, indent=4)
+        
+
+        from io import BytesIO
+        mem_file = BytesIO()
+        mem_file.write(json_str.encode('utf-8'))
+        mem_file.seek(0)
+        
+        filename = f"PremierLux_Backup_{datetime.now().strftime('%Y-%m-%d')}.json"
+        
+        return send_file(
+            mem_file,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='application/json'
+        )
+    except Exception as e:
+        print(f"Backup Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.before_request
+def check_lockdown():
+
+    allowed_routes = ['login', 'static', 'verify_login', 'logout']
+    if request.endpoint in allowed_routes or request.path.startswith('/static'):
+        return
+    
+    settings = settings_collection.find_one({"_id": "global_config"})
+    is_locked = settings.get("lockdown", False) if settings else False
+    
+    if is_locked and session.get("role") != "owner":
+        return jsonify({"error": "System is under maintenance. Please try again later."}), 503
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
