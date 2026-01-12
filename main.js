@@ -28,7 +28,6 @@ let currentUser = null;
 
 async function checkCurrentUser() {
     try {
-
         const res = await fetch(`${API_BASE}/api/me`, {
             credentials: 'include'
         });
@@ -37,13 +36,70 @@ async function checkCurrentUser() {
             doLogout();
             return;
         }
+
         currentUser = await res.json();
+
+
+        updateDashboardHeader(currentUser);
 
         applyRolePermissions();
         console.log(`Authenticated as: ${currentUser.name} (${currentUser.role})`);
     } catch (err) {
         console.error("Auth check failed:", err);
     }
+}
+
+function updateDashboardHeader(user) {
+    const welcomeEl = document.getElementById('dash-welcome');
+    const roleBadge = document.getElementById('dash-role-badge');
+    const branchInfo = document.getElementById('dash-branch-info');
+
+
+    if (welcomeEl) {
+
+        const firstName = user.name.split(' ')[0];
+        welcomeEl.textContent = `Welcome, ${firstName}`;
+    }
+
+    if (roleBadge) {
+        roleBadge.textContent = user.role;
+
+        if (user.role === 'owner') {
+            roleBadge.className = "px-2 py-0.5 rounded-md bg-purple-100 text-purple-700 text-[10px] font-bold uppercase tracking-wider border border-purple-200";
+        } else if (user.role === 'admin') {
+            roleBadge.className = "px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-wider border border-blue-200";
+        } else {
+            roleBadge.className = "px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-wider border border-slate-200";
+        }
+    }
+
+    if (branchInfo) {
+        const branchName = user.branch || 'Headquarters';
+        branchInfo.textContent = `Logged in at ${branchName}`;
+    }
+}
+
+
+function updateUserUI(user) {
+
+    const navName = document.getElementById('nav-user-name');
+    const navRole = document.getElementById('nav-user-role');
+
+    if (navName) navName.textContent = user.name || "User";
+    if (navRole) {
+
+        const roleDisplay = user.role === 'staff'
+            ? `${user.role} • ${user.branch}`
+            : user.role;
+        navRole.textContent = roleDisplay;
+    }
+
+
+    const mobName = document.getElementById('mob-user-name');
+    const mobRole = document.getElementById('mob-user-role');
+
+    if (mobName) mobName.textContent = user.name || "User";
+    if (mobRole) mobRole.textContent = user.role;
 }
 
 function applyRolePermissions() {
