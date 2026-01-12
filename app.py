@@ -42,7 +42,7 @@ MONGO_URI = os.environ.get("MONGO_URI", "mongodb+srv://dbirolliverhernandez_db_u
 client = MongoClient(MONGO_URI)
 db = client["premierlux"]
 
-LOCAL_DEV_KEY = "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"
+LOCAL_DEV_KEY = "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"
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", LOCAL_DEV_KEY)
 
 if not GROQ_API_KEY or not GROQ_API_KEY.startswith("gsk_"):
@@ -474,7 +474,7 @@ def ai_analyze_inventory():
                 {"role": "system", "content": "Analyze inventory JSON. Return JSON keys: 'insight_text', 'status_badge' (Healthy/Warning/Critical), 'recommended_order' list."},
                 {"role": "user", "content": str(items)}
             ],
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",
             response_format={"type": "json_object"}
         )
         return jsonify(json.loads(completion.choices[0].message.content))
@@ -535,7 +535,7 @@ def ai_predict_restock():
             """
             completion = client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],
-                model="llama-3.3-70b-versatile",
+                model="llama-3.1-8b-instant",
                 response_format={"type": "json_object"}
             )
             ai_predictions = json.loads(completion.choices[0].message.content)
@@ -653,7 +653,7 @@ def ai_market_intelligence():
 
         client = Groq(api_key=GROQ_API_KEY)
         
-        # ➤ STRICTER PROMPT: Enforce Data Types
+      
         system_instruction = """
         Analyze supplier price trends. Return JSON with exactly these keys:
         1. "market_summary": (String) A short sentence summarizing the market (e.g. "Prices are stable.").
@@ -670,7 +670,7 @@ def ai_market_intelligence():
                 {"role": "system", "content": system_instruction},
                 {"role": "user", "content": f"Data: {data_str}"}
             ],
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",
             response_format={"type": "json_object"}
         )
         return jsonify(json.loads(completion.choices[0].message.content))
@@ -734,7 +734,7 @@ def ai_generate_restock_plan():
                 {"role": "system", "content": "You are a JSON-only inventory API."},
                 {"role": "user", "content": prompt}
             ],
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",
             response_format={"type": "json_object"}
         )
 
