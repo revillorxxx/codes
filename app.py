@@ -326,7 +326,7 @@ def add_supplier():
     suppliers_collection.insert_one(data)
     return jsonify({"message": "Supplier added"}), 201
 
-@app.route("/api/suppliers/<name>", methods=["POST"])
+@app.route("/api/suppliers/<name>", methods=["PUT"])
 def update_supplier(name):
 
     if session.get("role") not in ["owner", "admin"]: return jsonify({"error": "Unauthorized"}), 403
@@ -461,24 +461,42 @@ def chat():
 
 @app.route('/api/ai/analyze', methods=['GET'])
 def ai_analyze_inventory():
-    if not GROQ_API_KEY: return jsonify({"insight_text": "AI Key Missing", "status_badge": "Offline"})
+    if not GROQ_API_KEY: 
+        return jsonify({"insight_text": "AI Key Missing", "status_badge": "Offline"})
+    
     try:
         client = Groq(api_key=GROQ_API_KEY)
+        
         query = {}
-        if session.get("role") == "staff": query["branch"] = session.get("branch")
+        if session.get("role") == "staff": 
+            query["branch"] = session.get("branch")
         
-        items = list(inventory_collection.find(query, {"_id":0, "name":1, "quantity":1, "reorder_level":1}).limit(20))
+        items = list(inventory_collection.find(query, {"_id":0, "name":1, "quantity":1, "reorder_level":1, "branch":1}).limit(20))
         
+        system_prompt = """
+        Analyze the inventory data. Return a JSON object with these exact keys:
+        1. "insight_text": (String) A short summary of the inventory health.
+        2. "status_badge": (String) One of "Healthy", "Warning", or "Critical".
+        3. "recommended_order": (List of Objects) Each object MUST have these exact keys:
+           - "item": (String) The exact name of the item.
+           - "branch": (String) The branch name (use 'Main' if unknown).
+           - "qty": (Integer) Suggested restock amount.
+           - "reason": (String) Short reason (e.g. "Low Stock").
+        """
+
         completion = client.chat.completions.create(
             messages=[
-                {"role": "system", "content": "Analyze inventory JSON. Return JSON keys: 'insight_text', 'status_badge' (Healthy/Warning/Critical), 'recommended_order' list."},
-                {"role": "user", "content": str(items)}
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Current Inventory: {str(items)}"}
             ],
-            model="llama-3.1-8b-instant",
+            model="llama-3.1-8b-instant",  
             response_format={"type": "json_object"}
         )
+     
         return jsonify(json.loads(completion.choices[0].message.content))
+
     except Exception as e:
+        print(f"AI Error: {e}")
         return jsonify({"insight_text": "Analysis failed", "status_badge": "Error"})
 
 @app.get("/api/ai/predict-restock")
