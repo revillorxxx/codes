@@ -1383,74 +1383,6 @@ function deleteSupplier(name) {
     openDeleteModal('supplier', name);
 }
 
-let currentEditSupplier = null;
-
-function openEditSupplier(name, contact, phone, lead) {
-    currentEditSupplier = name;
-
-    document.getElementById('supplierModalTitle').textContent = "Edit Supplier";
-    document.getElementById('supplierSubmitBtn').textContent = "Save Changes";
-
-    document.getElementById('new_supp_name').value = name;
-    document.getElementById('new_supp_name').disabled = true;
-    document.getElementById('new_supp_contact').value = contact !== 'undefined' ? contact : '';
-    document.getElementById('new_supp_phone').value = phone !== 'undefined' ? phone : '';
-    document.getElementById('new_supp_lead').value = lead || 0;
-
-    document.getElementById('supplierOverlay').classList.remove('hidden');
-}
-
-function openSupplierModal() {
-
-    currentEditSupplier = null;
-    document.getElementById('supplierModalTitle').textContent = "New Supplier";
-    document.getElementById('supplierSubmitBtn').textContent = "Add Supplier";
-    document.getElementById('new_supp_name').disabled = false;
-    document.getElementById('new_supp_name').value = '';
-    document.getElementById('new_supp_contact').value = '';
-    document.getElementById('new_supp_phone').value = '';
-    document.getElementById('new_supp_lead').value = '';
-
-    document.getElementById('supplierOverlay').classList.remove('hidden');
-}
-
-async function submitSupplierForm(e) {
-    e.preventDefault();
-    const payload = {
-        name: document.getElementById('new_supp_name').value,
-        contact: document.getElementById('new_supp_contact').value,
-        phone: document.getElementById('new_supp_phone').value,
-        lead_time_days: Number(document.getElementById('new_supp_lead').value)
-    };
-
-    try {
-        let url = SUPPLIERS_API_URL;
-        let method = 'POST';
-        if (currentEditSupplier) {
-            url = `${SUPPLIERS_API_URL}/${encodeURIComponent(currentEditSupplier)}`;
-            method = 'PUT';
-        }
-
-        const res = await fetch(url, {
-            method: method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (!res.ok) throw new Error("Failed");
-
-        closeSupplierModal();
-        fetchSuppliers();
-        showToast(currentEditSupplier ? "Supplier updated" : "Supplier saved");
-
-    } catch (err) { alert(err.message); }
-}
-
-function handleSupplierOutsideClick(e) {
-    if (e.target.id === 'supplierOverlay') {
-        closeSupplierModal();
-    }
-}
 
 function openRestockFromSupplier(supplierName) {
     openRestockModal('', '', 0);
@@ -3076,7 +3008,7 @@ function submitUserForm(e) {
     const payload = {
         name: document.getElementById('new_user_name').value,
         email: document.getElementById('new_user_email').value,
-        password: document.getElementById('new_user_pass').value,
+        password: document.getElementById('userPassword').value,
         role: roleVal,
         branch: branchVal
     };
@@ -3090,6 +3022,9 @@ function submitUserForm(e) {
             showToast("User created successfully");
             closeUserModal();
             fetchUsers();
+            document.getElementById('new_user_name').value = '';
+            document.getElementById('new_user_email').value = '';
+            document.getElementById('userPassword').value = '';
         } else {
             res.json().then(data => alert(data.error || "Failed to create user"));
         }
